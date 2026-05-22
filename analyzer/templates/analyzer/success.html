@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Analysis Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple:       #534AB7;
+    --purple-dark:  #3C3489;
+    --purple-light: #EEEDFE;
+    --purple-mid:   #AFA9EC;
+    --teal:         #1D9E75;
+    --teal-light:   #E1F5EE;
+    --teal-dark:    #085041;
+    --coral:        #D85A30;
+    --coral-light:  #FAECE7;
+    --coral-dark:   #712B13;
+    --red:          #E24B4A;
+    --red-light:    #FCEBEB;
+    --red-dark:     #791F1F;
+  }
+ 
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F5F4F1;
+    color: #1a1a1a;
+    padding: 2.5rem 0 4rem;
+  }
+ 
+  /* ── Header ── */
+  .dash-header { text-align: center; margin-bottom: 2.25rem; }
+  .dash-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+  }
+  .dash-header p { font-size: .875rem; color: #6c757d; margin: 0; }
+ 
+  /* ── Brand logo ── */
+  .brand-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--purple);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .brand-logo:hover { color: var(--purple-dark); }
+ 
+  /* ── KPI cards ── */
+  .kpi-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+  }
+  .kpi-label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #6c757d;
+    margin-bottom: .4rem;
+  }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #1a1a1a;
+  }
+  .kpi-sub { font-size: .7rem; color: #aaa; margin-top: .3rem; }
+ 
+  /* ── Section cards ── */
+  .section-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 14px;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .section-card-header {
+    padding: .65rem 1.25rem;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #fff;
+  }
+  .section-card-body { padding: 1.25rem; }
+  .header-purple { background: var(--purple); }
+  .header-teal   { background: var(--teal); }
+  .header-coral  { background: var(--coral); }
+  .header-red    { background: var(--red); }
+ 
+  /* ── Progress bars ── */
+  .progress-row { margin-bottom: 1.1rem; }
+  .progress-row:last-child { margin-bottom: 0; }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .45rem;
+  }
+  .progress-name { font-size: .875rem; font-weight: 500; }
+  .progress-pct  { font-size: .8rem; color: #6c757d; }
+  .progress {
+    height: 9px;
+    background: #F0EEE8;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 99px;
+    width: 0;
+    transition: width 1.2s cubic-bezier(.25,.8,.25,1);
+  }
+  .bar-purple { background: var(--purple); }
+  .bar-teal   { background: var(--teal); }
+ 
+  /* ── Skill badges ── */
+  .skill-badge {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 99px;
+    margin: 3px;
+  }
+  .badge-detected { background: var(--purple-light); color: var(--purple-dark); }
+  .badge-matched  { background: var(--teal-light);   color: var(--teal-dark); }
+ 
+  /* ── Bullet lists ── */
+  .clean-list { list-style: none; padding: 0; margin: 0; }
+  .clean-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: .875rem;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+    line-height: 1.5;
+  }
+  .clean-list li:last-child { border-bottom: none; }
+  .clean-list li::before {
+    content: '';
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .li-missing::before  { background: var(--coral); }
+  .li-strength::before { background: var(--teal); }
+  .li-weakness::before { background: var(--red); }
+ 
+  /* ── Download button ── */
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--purple);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 2px 12px rgba(83,74,183,.25);
+  }
+  .btn-download:hover {
+    background: var(--purple-dark);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(83,74,183,.35);
+    transform: translateY(-1px);
+  }
+  .btn-download:active { transform: scale(.98); }
+  .btn-download svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+ 
+  .download-bar {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .download-bar-text h5 {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 0 3px;
+  }
+  .download-bar-text p {
+    font-size: .8rem;
+    color: #6c757d;
+    margin: 0;
+  }
+ 
+  @media (max-width: 576px) {
+    .dash-header h1  { font-size: 1.5rem; }
+    .kpi-value       { font-size: 1.6rem; }
+    .download-bar    { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container" style="max-width:860px;">
+ 
+  <!-- Top nav / logo -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="/" class="brand-logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      ResumeAI
+    </a>
+    <span style="font-size:.8rem;color:#aaa;">Analysis complete</span>
+  </div>
+ 
+  <!-- Page header -->
+  <div class="dash-header">
+    <h1>Resume Analysis</h1>
+    <p>AI-powered evaluation of your resume against the target role</p>
+  </div>
+ 
+  <!-- ── Download PDF bar ── -->
+  <div class="download-bar">
+    <div class="download-bar-text">
+      <h5>Download Full Report</h5>
+      <p>Get a formatted PDF with your score, skills breakdown, strengths &amp; areas to improve</p>
+    </div>
+ 
+    <form method="GET" action="{% url 'download_pdf' %}">
+      <!-- Core scores -->
+      <input type="hidden" name="score"            value="{{ score }}">
+      <input type="hidden" name="match_percentage" value="{{ match_percentage }}">
+ 
+      <!-- All detected skills -->
+      {% for skill in skills %}
+        <input type="hidden" name="skills" value="{{ skill }}">
+      {% endfor %}
+ 
+      <!-- Matched skills -->
+      {% for skill in match_skills %}
+        <input type="hidden" name="match_skills" value="{{ skill }}">
+      {% endfor %}
+ 
+      <!-- Missing skills -->
+      {% for skill in missing_skills %}
+        <input type="hidden" name="missing_skills" value="{{ skill }}">
+      {% endfor %}
+ 
+      <!-- Strengths -->
+      {% for item in strengths %}
+        <input type="hidden" name="strengths" value="{{ item }}">
+      {% endfor %}
+ 
+      <!-- Weaknesses -->
+      {% for item in weaknesses %}
+        <input type="hidden" name="weaknesses" value="{{ item }}">
+      {% endfor %}
+ 
+      <button type="submit" class="btn-download">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download PDF Report
+      </button>
+    </form>
+  </div>
+ 
+  <!-- ── KPI row ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Resume Score</div>
+        <div class="kpi-value">{{ score }}</div>
+        <div class="kpi-sub">out of 100</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Job Match</div>
+        <div class="kpi-value">{{ match_percentage }}%</div>
+        <div class="kpi-sub">match rate</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Skills Found</div>
+        <div class="kpi-value">{{ skills|length }}</div>
+        <div class="kpi-sub">detected</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Missing</div>
+        <div class="kpi-value">{{ missing_skills|length }}</div>
+        <div class="kpi-sub">skills to add</div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── Score progress bars ── -->
+  <div class="section-card mb-4">
+    <div class="section-card-header header-purple">Score Overview</div>
+    <div class="section-card-body">
+      <div class="progress-row">
+        <div class="progress-meta">
+          <span class="progress-name">Resume Score</span>
+          <span class="progress-pct">{{ score }}/100</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar bar-purple"
+               data-val="{{ score }}"
+               role="progressbar"
+               aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-meta">
+          <span class="progress-name">Job Match</span>
+          <span class="progress-pct">{{ match_percentage }}%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar bar-teal"
+               data-val="{{ match_percentage }}"
+               role="progressbar"
+               aria-valuenow="{{ match_percentage }}" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── Detected skills ── -->
+  <div class="section-card">
+    <div class="section-card-header header-purple">Detected Skills</div>
+    <div class="section-card-body">
+      {% for skill in skills %}
+        <span class="skill-badge badge-detected">{{ skill }}</span>
+      {% endfor %}
+    </div>
+  </div>
+ 
+  <!-- ── Matched & Missing skills ── -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="section-card h-100">
+        <div class="section-card-header header-teal">Matched Skills</div>
+        <div class="section-card-body">
+          {% for skill in match_skills %}
+            <span class="skill-badge badge-matched">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="section-card h-100">
+        <div class="section-card-header header-coral">Missing Skills</div>
+        <div class="section-card-body">
+          <ul class="clean-list">
+            {% for skill in missing_skills %}
+              <li class="li-missing">{{ skill }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── Strengths & Weaknesses ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="section-card h-100">
+        <div class="section-card-header header-teal">Strengths</div>
+        <div class="section-card-body">
+          <ul class="clean-list">
+            {% for item in strengths %}
+              <li class="li-strength">{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="section-card h-100">
+        <div class="section-card-header header-red">Areas to Improve</div>
+        <div class="section-card-body">
+          <ul class="clean-list">
+            {% for item in weaknesses %}
+              <li class="li-weakness">{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── Second download CTA at bottom ── -->
+  <div class="text-center pt-2">
+    <p style="font-size:.85rem;color:#aaa;margin-bottom:1rem;">Want to keep this report?</p>
+    <form method="GET" action="{% url 'download_pdf' %}" style="display:inline;">
+      <input type="hidden" name="score"            value="{{ score }}">
+      <input type="hidden" name="match_percentage" value="{{ match_percentage }}">
+      {% for skill in skills %}        <input type="hidden" name="skills"         value="{{ skill }}">{% endfor %}
+      {% for skill in match_skills %}  <input type="hidden" name="match_skills"   value="{{ skill }}">{% endfor %}
+      {% for skill in missing_skills %}<input type="hidden" name="missing_skills" value="{{ skill }}">{% endfor %}
+      {% for item in strengths %}      <input type="hidden" name="strengths"      value="{{ item }}">{% endfor %}
+      {% for item in weaknesses %}     <input type="hidden" name="weaknesses"     value="{{ item }}">{% endfor %}
+      <button type="submit" class="btn-download">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download PDF Report
+      </button>
+    </form>
+  </div>
+ 
+</div><!-- /container -->
+ 
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      document.querySelectorAll('.progress-bar[data-val]').forEach(function (bar) {
+        var val = parseFloat(bar.getAttribute('data-val')) || 0;
+        bar.style.width = Math.min(100, Math.max(0, val)) + '%';
+      });
+    }, 150);
+  });
+</script>
+</body>
+</html>
+ 

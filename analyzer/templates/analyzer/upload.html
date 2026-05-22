@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Resume Analyzer</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple:       #534AB7;
+    --purple-dark:  #3C3489;
+    --purple-light: #EEEDFE;
+    --purple-mid:   #AFA9EC;
+  }
+ 
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F5F4F1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2.5rem 0;
+  }
+ 
+  /* Header */
+  .page-header { text-align: center; margin-bottom: 2rem; }
+  .page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+    color: #1a1a1a;
+  }
+  .page-header p { font-size: .875rem; color: #6c757d; margin: 0; }
+ 
+  /* Form card */
+  .form-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 16px;
+    padding: 2rem;
+  }
+ 
+  /* Field labels */
+  .field-label {
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #6c757d;
+    display: block;
+    margin-bottom: .6rem;
+  }
+ 
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed #d0cee8;
+    border-radius: 12px;
+    padding: 2.25rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--purple);
+    background: var(--purple-light);
+  }
+  .drop-icon {
+    font-size: 2.4rem;
+    margin-bottom: .75rem;
+    display: block;
+  }
+  .drop-title {
+    font-size: .95rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: .25rem;
+  }
+  .drop-sub { font-size: .8rem; color: #aaa; margin: 0; }
+  .drop-sub span { color: var(--purple); font-weight: 500; cursor: pointer; }
+  input[type="file"] { display: none; }
+ 
+  /* File pill (shown after upload) */
+  .file-pill {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: var(--purple-light);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .file-pill.show { display: flex; }
+  .file-pill-icon { font-size: 1.3rem; color: var(--purple); flex-shrink: 0; }
+  .file-pill-name {
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--purple-dark);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-pill-remove {
+    font-size: .85rem;
+    color: var(--purple);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background .15s;
+  }
+  .file-pill-remove:hover { background: #CECBF6; }
+ 
+  /* Textarea */
+  .jd-textarea {
+    width: 100%;
+    min-height: 180px;
+    resize: vertical;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    color: #1a1a1a;
+    background: #F9F8F6;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    line-height: 1.65;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .jd-textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.12); }
+  .jd-textarea::placeholder { color: #bbb; }
+  .char-count { font-size: .75rem; color: #bbb; text-align: right; margin-top: .35rem; }
+ 
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 600;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .2s, transform .1s;
+    margin-top: 1.75rem;
+  }
+  .submit-btn:hover:not(:disabled) { background: var(--purple-dark); }
+  .submit-btn:active:not(:disabled) { transform: scale(.98); }
+  .submit-btn:disabled { background: var(--purple-mid); cursor: not-allowed; }
+ 
+  /* Tips grid */
+  .tips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 1.25rem;
+  }
+  .tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: .78rem;
+    color: #6c757d;
+    background: #F5F4F1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    line-height: 1.4;
+  }
+  .tip-icon { color: var(--purple); flex-shrink: 0; margin-top: 1px; }
+ 
+  /* Spinner animation */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { display: inline-block; animation: spin .8s linear infinite; }
+ 
+  @media (max-width: 480px) {
+    .tips { grid-template-columns: 1fr; }
+    .form-card { padding: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container" style="max-width: 620px;">
+ 
+  <div class="page-header">
+    <h1>AI Resume Analyzer</h1>
+    <p>Upload your resume and paste the job description for an instant match report</p>
+  </div>
+ 
+  <div class="form-card">
+    <form method="POST" enctype="multipart/form-data" id="analyzeForm">
+      {% csrf_token %}
+ 
+      <!-- Resume upload -->
+      <div class="mb-4">
+        <label class="field-label">Resume</label>
+ 
+        <div class="drop-zone" id="dropZone">
+          <span class="drop-icon">📄</span>
+          <p class="drop-title">Drop your resume here</p>
+          <p class="drop-sub">PDF, DOCX, or TXT &middot; <span id="browseLink">browse files</span></p>
+        </div>
+        <input type="file" id="fileInput" name="resume" accept=".pdf,.doc,.docx,.txt" required>
+ 
+        <div class="file-pill mt-3" id="filePill">
+          <span class="file-pill-icon">📎</span>
+          <span class="file-pill-name" id="fileName"></span>
+          <button type="button" class="file-pill-remove" id="removeFile" aria-label="Remove file">&#x2715;</button>
+        </div>
+      </div>
+ 
+      <!-- Job description -->
+      <div class="mb-2">
+        <label class="field-label" for="jdInput">Job description</label>
+        <textarea
+          class="jd-textarea"
+          id="jdInput"
+          name="job_description"
+          required
+          placeholder="Paste the full job posting here — responsibilities, qualifications, and preferred skills give the best results…"></textarea>
+        <p class="char-count"><span id="charCount">0</span> characters</p>
+      </div>
+ 
+      <!-- Submit -->
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>
+        <span id="btnIcon">✦</span>
+        <span id="btnText">Analyze resume</span>
+      </button>
+ 
+    </form>
+ 
+    <!-- Tips -->
+    <div class="tips">
+      <div class="tip"><span class="tip-icon">🔒</span>Your file is never stored</div>
+      <div class="tip"><span class="tip-icon">⚡</span>Results in under 10 seconds</div>
+      <div class="tip"><span class="tip-icon">📋</span>Works best with full JD text</div>
+      <div class="tip"><span class="tip-icon">✅</span>PDF and DOCX supported</div>
+    </div>
+  </div>
+</div>
+ 
+<script>
+  const dropZone   = document.getElementById('dropZone');
+  const fileInput  = document.getElementById('fileInput');
+  const filePill   = document.getElementById('filePill');
+  const fileName   = document.getElementById('fileName');
+  const removeFile = document.getElementById('removeFile');
+  const browseLink = document.getElementById('browseLink');
+  const jdInput    = document.getElementById('jdInput');
+  const charCount  = document.getElementById('charCount');
+  const submitBtn  = document.getElementById('submitBtn');
+  const btnText    = document.getElementById('btnText');
+  const btnIcon    = document.getElementById('btnIcon');
+ 
+  function setFile(file) {
+    if (!file) return;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    fileName.textContent = file.name;
+    filePill.classList.add('show');
+    dropZone.style.display = 'none';
+    checkReady();
+  }
+ 
+  function clearFile() {
+    filePill.classList.remove('show');
+    dropZone.style.display = '';
+    fileInput.value = '';
+    checkReady();
+  }
+ 
+  function checkReady() {
+    const hasFile = filePill.classList.contains('show');
+    const hasJD   = jdInput.value.trim().length > 20;
+    submitBtn.disabled = !(hasFile && hasJD);
+  }
+ 
+  browseLink.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', () => fileInput.click());
+  removeFile.addEventListener('click', clearFile);
+ 
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+ 
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+ 
+  jdInput.addEventListener('input', () => {
+    charCount.textContent = jdInput.value.length;
+    checkReady();
+  });
+ 
+  document.getElementById('analyzeForm').addEventListener('submit', function () {
+    submitBtn.disabled = true;
+    btnIcon.innerHTML = '<span class="spin">↻</span>';
+    btnText.textContent = 'Analyzing…';
+  });
+</script>
+</body>
+</html>
+ 
