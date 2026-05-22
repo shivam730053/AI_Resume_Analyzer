@@ -195,6 +195,11 @@
   </div>
  
   <div class="form-card">
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    
     <form method="POST" enctype="multipart/form-data" id="analyzeForm">
       {% csrf_token %}
  

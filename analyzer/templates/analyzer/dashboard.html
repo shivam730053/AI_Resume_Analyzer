@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Analytics — ResumeAI</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --purple:        #534AB7;
+    --purple-dark:   #3C3489;
+    --purple-light:  #EEEDFE;
+    --purple-mid:    #AFA9EC;
+    --teal:          #1D9E75;
+    --teal-light:    #E1F5EE;
+    --teal-dark:     #0F6E56;
+    --coral:         #D85A30;
+    --coral-light:   #FAECE7;
+    --amber:         #BA7517;
+    --amber-light:   #FAEEDA;
+    --red:           #E24B4A;
+    --red-light:     #FCEBEB;
+    --surface:       #F5F4F1;
+    --card-bg:       #ffffff;
+    --border:        rgba(0,0,0,0.07);
+    --muted:         #6c757d;
+    --text:          #1a1a1a;
+    --grid-color:    rgba(0,0,0,0.06);
+    --label-color:   #9a9890;
+    --bar-colors:    #534AB7, #1D9E75, #D85A30, #378ADD, #D4537E, #BA7517, #639922;
+  }
+ 
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    padding: 2.5rem 0 4rem;
+  }
+ 
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: .75rem;
+  }
+  .brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--purple);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 .2rem;
+  }
+  .page-sub { font-size: .85rem; color: var(--muted); margin: 0; }
+ 
+  /* ── KPI cards ── */
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .kpi-label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: .4rem;
+  }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+  .kpi-sub  { font-size: .72rem; color: #aaa; margin-top: .3rem; }
+  .kpi-delta { font-size: .72rem; margin-top: .4rem; }
+  .delta-up { color: var(--teal-dark); }
+  .delta-dn { color: var(--coral); }
+ 
+  /* ── Section card ── */
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+    height: 100%;
+  }
+  .section-label {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+  }
+ 
+  /* ── Skill bars ── */
+  .skill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .skill-row:last-child { margin-bottom: 0; }
+  .skill-name {
+    font-size: .8rem;
+    color: var(--text);
+    width: 96px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .skill-track {
+    flex: 1;
+    height: 7px;
+    background: var(--surface);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .skill-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0;
+    transition: width 1.1s cubic-bezier(.25,.8,.25,1);
+  }
+  .skill-count { font-size: .75rem; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
+ 
+  /* ── Uploads list ── */
+  .upload-list { list-style: none; padding: 0; margin: 0; }
+  .upload-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+  }
+  .upload-item:last-child { border-bottom: none; }
+  .upload-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--purple-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .upload-icon svg { width: 16px; height: 16px; stroke: var(--purple); fill: none; stroke-width: 2; }
+  .upload-info { flex: 1; overflow: hidden; }
+  .upload-name {
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .upload-meta { font-size: .72rem; color: #aaa; margin-top: 1px; }
+  .score-pill {
+    font-size: .75rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+    flex-shrink: 0;
+  }
+  .score-high { background: var(--teal-light);  color: var(--teal-dark); }
+  .score-mid  { background: var(--purple-light); color: var(--purple-dark); }
+  .score-low  { background: var(--coral-light);  color: #712B13; }
+ 
+  /* ── Charts ── */
+  .chart-wrap { position: relative; width: 100%; }
+</style>
+</head>
+<body>
+ 
+<div class="container" style="max-width:960px;">
+ 
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="/" class="brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      ResumeAI
+    </a>
+    <div>
+      <h1 class="page-title">Admin analytics</h1>
+      <p class="page-sub">Overview of all resume submissions and analysis results</p>
+    </div>
+  </div>
+ 
+  <!-- KPI row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Total resumes</div>
+        <div class="kpi-value">{{ total_resumes }}</div>
+        <div class="kpi-delta delta-up">↑ uploaded this week</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Avg score</div>
+        <div class="kpi-value">{{ average_score }}</div>
+        <div class="kpi-sub">out of 100</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Avg match</div>
+        <div class="kpi-value">{{ average_match }}%</div>
+        <div class="kpi-sub">job match rate</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Top skill</div>
+        <div class="kpi-value" style="font-size:1.3rem; margin-top:4px;">
+          {% if top_skills %}{{ top_skills.0.0 }}{% else %}—{% endif %}
+        </div>
+        <div class="kpi-sub">most common</div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Skill frequency + Recent uploads -->
+  <div class="row g-3 mb-3">
+ 
+    <div class="col-md-6">
+      <div class="section-card">
+        <div class="section-label">Skill frequency</div>
+ 
+        {% for skill, count in top_skills %}
+        <div class="skill-row">
+          <span class="skill-name">{{ skill }}</span>
+          <div class="skill-track">
+            <div class="skill-fill"
+                 data-val="{{ count }}"
+                 data-max="{{ top_skills.0.1 }}"
+                 style="background: var(--{% cycle 'purple' 'teal' 'coral' 'amber' 'purple' 'teal' 'coral' %})">
+            </div>
+          </div>
+          <span class="skill-count">{{ count }}</span>
+        </div>
+        {% empty %}
+        <p style="font-size:.85rem;color:var(--muted);">No skill data yet.</p>
+        {% endfor %}
+ 
+      </div>
+    </div>
+ 
+    <div class="col-md-6">
+      <div class="section-card">
+        <div class="section-label">Recent uploads</div>
+ 
+        <ul class="upload-list">
+          {% for resume in recent_resumes %}
+          <li class="upload-item">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <div class="upload-info">
+              <div class="upload-name">{{ resume.file.name|cut:"resumes/" }}</div>
+              <div class="upload-meta">{{ resume.uploaded_at|timesince }} ago</div>
+            </div>
+            {% if resume.score %}
+              <span class="score-pill {% if resume.score >= 80 %}score-high{% elif resume.score >= 60 %}score-mid{% else %}score-low{% endif %}">
+                {{ resume.score }}
+              </span>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li style="font-size:.85rem;color:var(--muted);padding:.5rem 0;">No uploads yet.</li>
+          {% endfor %}
+        </ul>
+ 
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Score distribution + Upload trend -->
+  <div class="row g-3">
+ 
+    <div class="col-md-6">
+      <div class="section-card">
+        <div class="section-label">Score distribution</div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="scoreChart"
+                  role="img"
+                  aria-label="Bar chart showing how resume scores are distributed across five ranges from 0 to 100">
+            Score distribution data.
+          </canvas>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="col-md-6">
+      <div class="section-card">
+        <div class="section-label">Upload trend — last 7 days</div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="trendChart"
+                  role="img"
+                  aria-label="Line chart showing daily upload counts over the past 7 days">
+            Daily upload trend data.
+          </canvas>
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+ 
+</div><!-- /container -->
+ 
+<!-- Inject Django template data as JS variables -->
+<script>
+  // Score distribution buckets — computed in your view and passed as context
+  // Expected: score_distribution = [[label, count], ...]
+  // e.g. [["0–20", 4], ["20–40", 18], ["40–60", 52], ["60–80", 106], ["80–100", 67]]
+  const scoreLabels = {{ score_distribution_labels|safe }};
+  const scoreCounts = {{ score_distribution_counts|safe }};
+ 
+  // Upload trend — last 7 days
+  // Expected: trend_labels = ["Mon","Tue",...], trend_counts = [8, 14, ...]
+  const trendLabels = {{ trend_labels|safe }};
+  const trendCounts = {{ trend_counts|safe }};
+ 
+  // Skill bars max value for width calculation
+  const skillMax = {{ top_skills.0.1|default:1 }};
+</script>
+ 
+<script>
+  // Animate skill bars
+  window.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      document.querySelectorAll('.skill-fill[data-val]').forEach(function (el) {
+        var val = parseFloat(el.getAttribute('data-val')) || 0;
+        var max = parseFloat(el.getAttribute('data-max')) || 1;
+        el.style.width = Math.round((val / max) * 100) + '%';
+      });
+    }, 120);
+ 
+    var barColors = ['#534AB7','#1D9E75','#D85A30','#378ADD','#D4537E','#BA7517','#639922'];
+ 
+    // Score distribution chart
+    new Chart(document.getElementById('scoreChart'), {
+      type: 'bar',
+      data: {
+        labels: scoreLabels,
+        datasets: [{
+          label: 'Resumes',
+          data: scoreCounts,
+          backgroundColor: ['#F7C1C1','#FAC775','#B5D4F4','#AFA9EC','#5DCAA5'],
+          borderRadius: 5,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.parsed.y + ' resumes'; } } }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9a9890', font: { size: 11 }, autoSkip: false }
+          },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            ticks: { color: '#9a9890', font: { size: 11 }, precision: 0 },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+ 
+    // Upload trend chart
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: 'Uploads',
+          data: trendCounts,
+          borderColor: '#534AB7',
+          backgroundColor: 'rgba(83,74,183,0.08)',
+          pointBackgroundColor: '#534AB7',
+          pointRadius: 4,
+          fill: true,
+          tension: 0.38,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.parsed.y + ' uploads'; } } }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9a9890', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            ticks: { color: '#9a9890', font: { size: 11 }, precision: 0 },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  });
+</script>
+ 
+</body>
+</html>
+ 
