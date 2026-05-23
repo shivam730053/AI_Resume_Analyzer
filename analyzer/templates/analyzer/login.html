@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — ResumeAI</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple:       #534AB7;
+    --purple-dark:  #3C3489;
+    --purple-light: #EEEDFE;
+    --teal:         #1D9E75;
+    --teal-light:   #E1F5EE;
+    --coral:        #D85A30;
+    --coral-light:  #FAECE7;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: #F5F4F1; color: #1a1a1a; }
+ 
+  /* NAV */
+  .site-nav { background: #fff; border-bottom: 1px solid rgba(0,0,0,.07); padding: .85rem 0; }
+  .nav-brand { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--purple); text-decoration: none; display: flex; align-items: center; gap: 7px; }
+  .nav-brand:hover { color: var(--purple-dark); }
+ 
+  /* Form card — same as upload.html */
+  .section-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; overflow: hidden; margin-bottom: 1.25rem; }
+  .section-card-header { padding: .65rem 1.25rem; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #fff; }
+  .section-card-body   { padding: 1.5rem 1.25rem; }
+  .header-purple { background: var(--purple); }
+  .header-teal   { background: var(--teal); }
+ 
+  /* Field labels */
+  .field-label { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #6c757d; display: block; margin-bottom: .5rem; }
+ 
+  /* Inputs — same style as upload.html textarea/file */
+  .form-input {
+    width: 100%; background: #F9F8F6; border: 1px solid rgba(0,0,0,.1);
+    border-radius: 10px; padding: .75rem 1rem; font-family: 'DM Sans', sans-serif;
+    font-size: .9rem; color: #1a1a1a; outline: none; transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .form-input::placeholder { color: #bbb; }
+  .form-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.1); }
+ 
+  /* Password wrap */
+  .pw-wrap { position: relative; }
+  .pw-wrap .form-input { padding-right: 3rem; }
+  .pw-toggle { position: absolute; right: .85rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #aaa; padding: 0; display: flex; transition: color .18s; }
+  .pw-toggle:hover { color: #6c757d; }
+ 
+  /* Error box */
+  .error-card { background: #FCEBEB; border: 1px solid rgba(226,75,74,.2); border-radius: 10px; padding: .85rem 1rem; margin-bottom: 1rem; font-size: .82rem; color: #791F1F; }
+ 
+  /* Submit — same as upload.html */
+  .btn-submit {
+    width: 100%; padding: .85rem; font-family: 'DM Sans', sans-serif; font-size: .95rem;
+    font-weight: 600; color: #fff; background: var(--purple); border: none; border-radius: 10px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .2s, transform .1s;
+  }
+  .btn-submit:hover:not(:disabled) { background: var(--purple-dark); }
+  .btn-submit:active { transform: scale(.98); }
+ 
+  /* Info card (right side) */
+  .info-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; overflow: hidden; }
+  .info-card-body { padding: 1.5rem 1.25rem; }
+  .info-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,.05); }
+  .info-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .info-item::before { content: ''; display: block; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex-shrink: 0; margin-top: 5px; }
+  .info-item-text { font-size: .875rem; color: #1a1a1a; line-height: 1.5; }
+  .info-item-sub  { font-size: .78rem; color: #6c757d; margin-top: 2px; }
+ 
+  /* Footer */
+  .site-footer { background: #fff; border-top: 1px solid rgba(0,0,0,.07); padding: 1.5rem 0; margin-top: 2rem; }
+  .footer-brand { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--purple); text-decoration: none; }
+  .footer-copy  { font-size: .78rem; color: #6c757d; margin: 0; }
+ 
+  .link-purple { color: var(--purple); font-weight: 500; text-decoration: none; }
+  .link-purple:hover { text-decoration: underline; color: var(--purple-dark); }
+  .divider-text { font-size: .8rem; color: #aaa; text-align: center; margin: 1rem 0; position: relative; }
+  .divider-text::before, .divider-text::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: rgba(0,0,0,.08); }
+  .divider-text::before { left: 0; }
+  .divider-text::after  { right: 0; }
+</style>
+</head>
+<body>
+ 
+<!-- NAV -->
+<nav class="site-nav">
+  <div class="container" style="max-width:860px;">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="{% url 'home' %}" class="nav-brand">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        ResumeAI
+      </a>
+      <span style="font-size:.8rem;color:#aaa;">Don't have an account? <a href="{% url 'register' %}" class="link-purple">Sign up free</a></span>
+    </div>
+  </div>
+</nav>
+ 
+<div class="container mt-5 pb-5" style="max-width:860px;">
+ 
+  <h1 class="text-center mb-1" style="font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:700;">Welcome back</h1>
+  <p class="text-center mb-4" style="font-size:.875rem;color:#6c757d;">Log in to your ResumeAI account</p>
+ 
+  <div class="row g-4">
+ 
+    <!-- LOGIN FORM -->
+    <div class="col-md-7">
+ 
+      <!-- Django errors -->
+      {% if form.errors %}
+      <div class="error-card">
+        {% for field in form %}{% for error in field.errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+      {% endif %}
+      {% for message in messages %}
+      <div class="error-card">{{ message }}</div>
+      {% endfor %}
+ 
+      <div class="section-card">
+        <div class="section-card-header header-purple">Log in</div>
+        <div class="section-card-body">
+          <form method="POST" action="{% url 'login' %}" novalidate>
+            {% csrf_token %}
+ 
+            <div class="mb-3">
+              <label class="field-label" for="id_username">Username</label>
+              <input class="form-input" type="text" id="id_username" name="username"
+                placeholder="your username" autocomplete="username" required
+                value="{{ form.username.value|default:'' }}">
+            </div>
+ 
+            <div class="mb-3">
+              <label class="field-label" for="id_password">Password</label>
+              <div class="pw-wrap">
+                <input class="form-input" type="password" id="id_password" name="password"
+                  placeholder="••••••••••" autocomplete="current-password" required>
+                <button type="button" class="pw-toggle" id="pwToggle" aria-label="Toggle password visibility">
+                  <svg id="eyeIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+ 
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <label class="d-flex align-items-center gap-2" style="font-size:.82rem;color:#6c757d;cursor:pointer;">
+                <input type="checkbox" name="remember" style="accent-color:var(--purple);"> Remember me
+              </label>
+              <a href="{% url 'password_reset' %}" class="link-purple" style="font-size:.82rem;">Forgot password?</a>
+            </div>
+ 
+            <button type="submit" class="btn-submit">
+              Log in
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </form>
+ 
+          <div class="divider-text mt-3">or</div>
+          <p class="text-center mb-0" style="font-size:.85rem;color:#6c757d;">
+            New to ResumeAI? <a href="{% url 'register' %}" class="link-purple">Create a free account</a>
+          </p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- SIDE INFO -->
+    <div class="col-md-5">
+      <div class="section-card">
+        <div class="section-card-header header-teal">Why ResumeAI?</div>
+        <div class="info-card-body">
+          <div class="info-item">
+            <div><div class="info-item-text">Instant resume score</div><div class="info-item-sub">Get a quality score out of 100 in seconds</div></div>
+          </div>
+          <div class="info-item">
+            <div><div class="info-item-text">Precise job match %</div><div class="info-item-sub">See how well you align with any job description</div></div>
+          </div>
+          <div class="info-item">
+            <div><div class="info-item-text">Skill gap analysis</div><div class="info-item-sub">Know exactly which skills to add to your resume</div></div>
+          </div>
+          <div class="info-item">
+            <div><div class="info-item-text">Downloadable PDF report</div><div class="info-item-sub">Formatted report to share or keep for reference</div></div>
+          </div>
+          <div class="info-item">
+            <div><div class="info-item-text">Results in under 10 seconds</div><div class="info-item-sub">Powered by advanced AI language models</div></div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Testimonial -->
+      <div class="section-card mt-0">
+        <div class="section-card-body" style="padding:1.25rem;">
+          <p style="font-size:.85rem;color:#1a1a1a;line-height:1.65;font-style:italic;margin-bottom:.75rem;">
+            "My match score went from 42% to 87% after following ResumeAI's suggestions. Got the offer in 3 weeks."
+          </p>
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--purple-light);color:var(--purple);font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">RK</div>
+            <div>
+              <div style="font-size:.82rem;font-weight:500;color:#1a1a1a;">Rahul Kapoor</div>
+              <div style="font-size:.72rem;color:#6c757d;">Software Engineer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+</div>
+ 
+<footer class="site-footer">
+  <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2" style="max-width:860px;">
+    <a href="{% url 'home' %}" class="footer-brand">ResumeAI</a>
+    <p class="footer-copy">&copy; 2025 ResumeAI.</p>
+  </div>
+</footer>
+ 
+<script>
+  const pwInput  = document.getElementById('id_password');
+  const pwToggle = document.getElementById('pwToggle');
+  const eyeIcon  = document.getElementById('eyeIcon');
+  const eyeOpen   = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  const eyeClosed = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  pwToggle.addEventListener('click', function() {
+    const show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    eyeIcon.innerHTML = show ? eyeClosed : eyeOpen;
+  });
+</script>
+</body>
+</html>
+ 
